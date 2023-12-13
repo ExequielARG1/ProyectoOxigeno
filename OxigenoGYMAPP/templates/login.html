@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+
+<style>
+    body {
+        background: linear-gradient(-45deg, #7B68EE, #00BFFF, #7B68EE, #00BFFF);
+        background-size: 400% 400%;
+        animation: gradient-shift 20s ease infinite;
+        min-height: 100vh;
+        margin: 0;
+    }
+
+    @keyframes gradient-shift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    .pop-up-animation {
+        animation: pop-up 0.5s ease-out;
+    }
+
+    @keyframes pop-up {
+        0% { opacity: 0; transform: translateY(20px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+<div class="flex items-center justify-center min-h-screen">
+    <div class="max-w-3xl w-full bg-white shadow-lg rounded-lg p-8 transform hover:shadow-2xl transition duration-300 ease-in-out pop-up-animation">
+        <div class="flex items-center justify-center mb-6">
+            <i class="fas fa-dumbbell text-6xl text-blue-500 mr-4 animate-bounce"></i>
+            <span class="text-3xl font-semibold">Iniciar Sesión</span>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            {% if messages %}
+                <div class="bg-red-500 text-white px-4 py-3 rounded mb-4">
+                    {% for message in messages %}
+                        <p>{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <div class="mb-4">
+                <label for="username" class="block text-gray-700 text-sm font-semibold mb-2">Usuario</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-user text-gray-400"></i>
+                    </div>
+                    <input class="form-input w-full p-3 pl-10 border border-gray-300 rounded focus:outline-none focus:border-blue-500 focus:bg-blue-50 transition duration-300" id="username" name="username" type="text" placeholder="Ingrese su usuario">
+                </div>
+            </div>
+            <div class="mb-6">
+                <label for="password" class="block text-gray-700 text-sm font-semibold mb-2">Contraseña</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-lock text-gray-400"></i>
+                    </div>
+                    <input class="form-input w-full p-3 pl-10 border border-gray-300 rounded focus:outline-none focus:border-blue-500 focus:bg-blue-50 transition duration-300" id="password" name="password" type="password" placeholder="Ingrese su contraseña">
+                </div>
+            </div>
+            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded focus:outline-none transition duration-300 transform hover:scale-105">
+                Iniciar Sesión
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
