@@ -61,10 +61,14 @@ def editar_cliente(request, dni):
         form = ClienteForm(instance=cliente)
 
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        # Aquí puedes ajustar los datos que deseas enviar en la respuesta JSON
         data = {
             'nombre_completo': cliente.nombre_completo,
             'apodo': cliente.apodo,
             'dni': cliente.dni,
+            # Añadir las fechas si es necesario
+            'fecha_inicio_cuota': cliente.fecha_inicio_cuota,
+            'fecha_fin_cuota': cliente.fecha_fin_cuota,
         }
         return JsonResponse(data)
 
