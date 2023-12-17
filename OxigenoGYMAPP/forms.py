@@ -22,7 +22,7 @@ class ClienteForm(forms.ModelForm):
         fecha_inicio = cleaned_data.get("fecha_inicio_cuota")
         fecha_fin = cleaned_data.get("fecha_fin_cuota")
 
-        # Verificar que la fecha de fin no sea anterior a la fecha de inicio
+        # Verificar que la fecha de fin no sea anterior a la fecha de inicio solo si ambas están presentes
         if fecha_inicio and fecha_fin:
             if fecha_fin < fecha_inicio:
                 raise ValidationError("La fecha de fin no puede ser anterior a la fecha de inicio.")
