@@ -25,6 +25,7 @@ urlpatterns = [
     path('salir/', views.logout_view, name='salir_gym'),
     path('clientes/', views.listar_clientes, name='listar_clientes'),
     path('clientes/crear/', views.crear_cliente, name='crear_cliente'),
-    path('clientes/editar/<str:dni>/', views.editar_cliente, name='editar_cliente'),
-    path('clientes/eliminar/<str:dni>/', views.eliminar_cliente, name='eliminar_cliente'),
+    path('historial/<int:id_cliente>/', views.ver_historial, name='ver_historial'),  # Cambiado 'dni' a 'id_cliente'
+    path('clientes/editar/<int:id_cliente>/', views.editar_cliente, name='editar_cliente'),  # Cambiado 'dni' a 'id_cliente'
+    path('clientes/eliminar/<int:id_cliente>/', views.eliminar_cliente, name='eliminar_cliente')  # Cambiado 'dni' a 'id_cliente'
 ]

@@ -2,12 +2,13 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
-from .models import Cliente
-from .forms import ClienteForm
-from django.http import JsonResponse
-
+from .models import Cliente, CuotaHistorial
+from .forms import ClienteForm, CuotaHistorialForm
+from django.http import JsonResponse, HttpResponseServerError
 from django.contrib.auth.decorators import login_required
-# Create your views here.
+from django.db.utils import IntegrityError
+from django.db import transaction
+
 def index(request):
     return render(request, 'index.html')
 
@@ -35,49 +36,100 @@ def logout_view(request):
 @login_required(login_url='login_gym')
 def listar_clientes(request):
     clientes = Cliente.objects.all()
-    return render(request, 'clientes.html', {'clientes': clientes, 'form': ClienteForm()})
+    historiales_cuotas = CuotaHistorial.objects.all()
+    form_cliente = ClienteForm()  # Utiliza el formulario de Django
+    return render(request, 'clientes.html', {'clientes': clientes, 'historiales_cuotas': historiales_cuotas, 'form_cliente': form_cliente, 'historial_form': CuotaHistorialForm()})
 
+def ver_historial(request, id_cliente):
+    try:
+        cliente = Cliente.objects.get(id_cliente=id_cliente)
+        historial_cuotas = CuotaHistorial.objects.filter(cliente=cliente)
+
+        cliente_nombre = cliente.nombre_completo if cliente else "Cliente Desconocido"
+
+        data = [
+            {'fecha_inicio_cuota': str(historial.fecha_inicio_cuota), 'fecha_fin_cuota': str(historial.fecha_fin_cuota)}
+            for historial in historial_cuotas
+        ]
+
+        response_data = {'cliente_nombre': cliente_nombre, 'historial': data}
+        return JsonResponse(response_data, safe=False)
+    except Cliente.DoesNotExist:
+        return JsonResponse({'cliente_nombre': 'Cliente no encontrado', 'historial': []}, safe=False)
 def crear_cliente(request):
     if request.method == 'POST':
         form = ClienteForm(request.POST)
         if form.is_valid():
-            form.save()
-            return redirect('listar_clientes')
+            try:
+                form.save()
+                return redirect('listar_clientes')
+            except IntegrityError:
+                existing_client = Cliente.objects.get(dni=form.cleaned_data['dni'])
+                messages.error(request, f'El cliente con DNI {existing_client.dni} ya existe.')
+        else:
+            print("Formulario no válido:", form.errors)
     else:
         form = ClienteForm()
 
     clientes = Cliente.objects.all()
     return render(request, 'clientes.html', {'clientes': clientes, 'form': form})
 
-def editar_cliente(request, dni):
-    cliente = get_object_or_404(Cliente, dni=dni)
+@transaction.atomic
+def editar_cliente(request, id_cliente):
+    cliente = get_object_or_404(Cliente, pk=id_cliente)
+    try:
+        if request.method == 'POST':
+            form_cliente = ClienteForm(request.POST, instance=cliente)
+            form_cuota = CuotaHistorialForm(request.POST)
 
-    if request.method == 'POST':
-        form = ClienteForm(request.POST, instance=cliente)
-        if form.is_valid():
-            form.save()
-            return redirect('listar_clientes')
-    else:
-        form = ClienteForm(instance=cliente)
+            if form_cliente.is_valid() and form_cuota.is_valid():
+                form_cliente.save()
 
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        # Aquí puedes ajustar los datos que deseas enviar en la respuesta JSON
-        data = {
-            'nombre_completo': cliente.nombre_completo,
-            'apodo': cliente.apodo,
-            'dni': cliente.dni,
-            # Añadir las fechas si es necesario
-            'fecha_inicio_cuota': cliente.fecha_inicio_cuota,
-            'fecha_fin_cuota': cliente.fecha_fin_cuota,
-        }
-        return JsonResponse(data)
+                # Intenta obtener un registro existente o crear uno nuevo
+                cuota, created = CuotaHistorial.objects.get_or_create(
+                    cliente=cliente,
+                    fecha_inicio_cuota=form_cuota.cleaned_data['fecha_inicio_cuota'],
+                    defaults={'fecha_fin_cuota': form_cuota.cleaned_data['fecha_fin_cuota']}
+                )
+
+                if not created:
+                    # Si el registro ya existe, actualiza las fechas
+                    cuota.fecha_fin_cuota = form_cuota.cleaned_data['fecha_fin_cuota']
+                    cuota.save()
+
+                return redirect('listar_clientes')
+        else:
+            form_cliente = ClienteForm(instance=cliente)
+            form_cuota = CuotaHistorialForm()
+
+        # Manejar la petición GET y AJAX
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            data = {
+                'id_cliente': cliente.id_cliente,
+                'dni': cliente.dni,
+                'nombre_completo': cliente.nombre_completo,
+                'apodo': cliente.apodo,
+                'fecha_inicio_cuota': cliente.fecha_inicio_cuota.strftime('%Y-%m-%d') if cliente.fecha_inicio_cuota else '',
+                'fecha_fin_cuota': cliente.fecha_fin_cuota.strftime('%Y-%m-%d') if cliente.fecha_fin_cuota else '',
+            }
+            return JsonResponse(data)
+
+    except Exception as e:
+        # Manejar la excepción
+        return JsonResponse({'error': str(e)})
 
     clientes = Cliente.objects.all()
-    return render(request, 'clientes.html', {'form': form, 'clientes': clientes})
+    return render(request, 'clientes.html', {'form_cliente': form_cliente, 'form_cuota': form_cuota, 'clientes': clientes})
 
-def eliminar_cliente(request, dni):
-    cliente = get_object_or_404(Cliente, dni=dni)
-    if request.method == 'POST':
-        cliente.delete()
-        return redirect('listar_clientes')
-    return redirect('listar_clientes')
+@transaction.atomic
+def eliminar_cliente(request, id_cliente):
+    try:
+        cliente = Cliente.objects.get(id_cliente=id_cliente)
+        if request.method == 'POST':
+            # Eliminar manualmente las entradas en CuotaHistorial
+            CuotaHistorial.objects.filter(cliente=cliente).delete()
+            cliente.delete()
+            return redirect('listar_clientes')
+    except Cliente.DoesNotExist:
+        pass
+    return HttpResponseServerError("Error interno al eliminar el cliente.")

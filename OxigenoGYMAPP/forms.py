@@ -1,14 +1,14 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Cliente
+from .models import Cliente, CuotaHistorial
 
 class ClienteForm(forms.ModelForm):
     class Meta:
         model = Cliente
         fields = ['nombre_completo', 'dni', 'apodo', 'fecha_inicio_cuota', 'fecha_fin_cuota']
         widgets = {
-            'fecha_inicio_cuota': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
-            'fecha_fin_cuota': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
+            'fecha_inicio_cuota': forms.DateInput(attrs={'type': 'date', 'placeholder': 'YYYY-MM-DD'}, format='%Y-%m-%d'),
+            'fecha_fin_cuota': forms.DateInput(attrs={'type': 'date', 'placeholder': 'YYYY-MM-DD'}, format='%Y-%m-%d'),
         }
 
     def __init__(self, *args, **kwargs):
@@ -31,3 +31,12 @@ class ClienteForm(forms.ModelForm):
         # Por ejemplo, para evitar solapamientos con otras cuotas
 
         return cleaned_data
+
+class CuotaHistorialForm(forms.ModelForm):
+    class Meta:
+        model = CuotaHistorial
+        fields = ['fecha_inicio_cuota', 'fecha_fin_cuota']
+        widgets = {
+            'fecha_inicio_cuota': forms.DateInput(attrs={'type': 'date', 'placeholder': 'YYYY-MM-DD'}, format='%Y-%m-%d'),
+            'fecha_fin_cuota': forms.DateInput(attrs={'type': 'date', 'placeholder': 'YYYY-MM-DD'}, format='%Y-%m-%d'),
+        }

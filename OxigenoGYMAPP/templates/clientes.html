@@ -1,54 +1,87 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<style>
+    @keyframes heartbeat {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.25); }
+    }
+    .heartbeat {
+        animation: heartbeat 1.5s ease-in-out infinite;
+    }
+    </style>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.css" rel="stylesheet" />
 
 <div class="container mx-auto p-4">
     <!-- Capa semi-transparente -->
     <div id="overlay" class="hidden fixed inset-0 bg-black opacity-20 transition duration-300"></div>
 
-<!-- Botón para abrir modal de Agregar Cliente -->
-<div class="mb-4 text-right">
-    <button onclick="abrirModal('agregarClienteModal')" class="flex items-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0-8-8 8 8 0 0 0 8 8z" clip-rule="evenodd"></path></svg>
-        Agregar Cliente
-    </button>
-</div>
+    <!-- Botón para abrir modal de Agregar Cliente -->
+    <div class="mb-4 text-right">
+        <button onclick="abrirModal('agregarClienteModal')" class="flex items-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+            <svg class="h-24 w-24 text-green-600"  width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">  <path stroke="none" d="M0 0h24v24H0z"/>  <circle cx="9" cy="7" r="4" />  <path d="M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />  <path d="M16 11h6m-3 -3v6" /></svg>
+            Agregar Cliente
+        </button>
+    </div>
 
-<!-- Lista de clientes -->
+   <!-- Lista de clientes -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
     {% for cliente in clientes %}
-    <div class="bg-white p-6 rounded-lg shadow-lg">
+    <div class="bg-white p-6 rounded-lg shadow-lg transition duration-300 ease-in-out hover:shadow-xl">
         <h2 class="text-xl font-bold text-blue-700 mb-2">{{ cliente.nombre_completo }}</h2>
         <p class="text-sm text-gray-500 mb-1">{{ cliente.apodo }} - {{ cliente.dni }}</p>
         <p class="text-sm font-semibold mb-3">Inicio: <span class="text-green-600">{{ cliente.fecha_inicio_cuota }}</span> - Fin: <span class="text-red-600">{{ cliente.fecha_fin_cuota }}</span></p>
-        <div class="flex justify-between">
-            <button onclick="abrirModalEditar('{{ cliente.dni }}')" class="flex items-center text-yellow-500 hover:text-yellow-600">
-                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0-8-8 8 8 0 0 0 8 8z" clip-rule="evenodd"></path></svg>
+        <div class="flex justify-between items-center">
+            <button onclick="abrirModalEditar('{{ cliente.id_cliente }}')" class="flex items-center text-yellow-500 hover:text-yellow-600 focus:outline-none">
+                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20" aria-label="Editar cliente">
+                    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM18.41 7.34c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"></path>
+                </svg>
                 Editar
             </button>
-            <button class="flex items-center text-green-500 hover:text-green-600">
-                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0-8-8 8 8 0 0 0 8 8z" clip-rule="evenodd"></path></svg>
+            <button onclick="abrirModalHistorial('{{ cliente.id_cliente }}')" class="flex items-center text-green-500 hover:text-green-600 focus:outline-none">
+                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20" aria-label="Ver historial">
+                    <path d="M11 2H9v10h10v-2H11V2z"></path>
+                </svg>
                 Ver Historial
             </button>
-            <form onsubmit="return confirm('¿Estás seguro?');" action="{% url 'eliminar_cliente' cliente.dni %}" method="post" class="inline">
+            <form onsubmit="return confirm('¿Estás seguro de querer eliminar este cliente?');" action="{% url 'eliminar_cliente' cliente.id_cliente %}" method="post" class="inline">
                 {% csrf_token %}
-                <button type="submit" class="flex items-center text-red-500 hover:text-red-600">
-                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0-8-8 8 8 0 0 0 8 8z" clip-rule="evenodd"></path></svg>
+                <button type="submit" class="flex items-center text-red-500 hover:text-red-600 focus:outline-none">
+                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20" aria-label="Eliminar cliente">
+                        <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path>
+                    </svg>
                     Eliminar
                 </button>
             </form>
         </div>
     </div>
-    {% endfor %}
-</div>
 
-<!-- Modal para Agregar Cliente -->
+    {% empty %}
+    <!-- Contenedor Principal Centrado -->
+    <div class="flex flex-col items-center justify-center min-h-screen">
+        <!-- Contenedor del Mensaje -->
+        <div class="text-center p-6 bg-white rounded-lg shadow-xl">
+            <svg class="h-32 w-32 text-red-600 heartbeat mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <p class="text-lg font-semibold text-gray-700">No hay clientes para mostrar.</p>
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Modal para Agregar Cliente -->
 <div id="agregarClienteModal" class="hidden fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 overflow-y-auto overflow-x-hidden z-50 w-full md:max-w-2xl p-4 transition duration-300" aria-hidden="true">
     <div class="relative p-4 w-full max-w-2xl h-full md:h-auto">
         <!-- Modal content -->
         <div class="relative bg-white rounded-lg shadow dark:bg-gray-700 transition duration-300">
             <!-- Modal header -->
+            {% if messages %}
+  <ul class="messages">
+    {% for message in messages %}
+      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+  </ul>
+{% endif %}
             <div class="flex justify-between items-center p-5 rounded-t border-b dark:border-gray-600">
                 <h3 class="text-xl font-medium text-gray-900 dark:text-white">
                     Agregar Cliente
@@ -71,24 +104,65 @@
                 </div>
                 <div>
                     <label for="apodo" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Apodo</label>
-                    <input type="text" name="apodo" id="apodo" class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:text-white" placeholder="Apodo">
+                    <input type="text" name="apodo" id="apodo" class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:text-white" placeholder="Apodo" required="">
                 </div>
                 <div>
                     <label for="fecha_inicio_cuota" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Fecha Inicio Cuota</label>
-                    <input type="date" name="fecha_inicio_cuota" id="fecha_inicio_cuota" class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:text-white" required>
+                    <input type="date" name="fecha_inicio_cuota" id="fecha_inicio_cuota" class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:text-white" required="">
                 </div>
                 <div>
                     <label for="fecha_fin_cuota" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Fecha Fin Cuota</label>
-                    <input type="date" name="fecha_fin_cuota" id="fecha_fin_cuota" class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:text-white" required>
+                    <input type="date" name="fecha_fin_cuota" id="fecha_fin_cuota" class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:text-white" required="">
                 </div>
-                <!-- Botón para enviar el formulario -->
-                <button type="submit" class="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-                    Agregar Cliente
-                </button>
+                <!-- Botón para agregar cliente -->
+                <div>
+                    <button type="submit" class="flex items-center justify-center w-full py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 transition duration-300">
+                        Agregar Cliente
+                    </button>
+                </div>
             </form>
         </div>
     </div>
 </div>
+<!-- Modal para Ver Historial -->
+<div id="historialModal" class="hidden fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 overflow-y-auto overflow-x-hidden z-50 w-full md:max-w-2xl p-4 transition duration-300">
+    <div class="relative p-4 w-full max-w-2xl h-full md:h-auto">
+        <!-- Modal content -->
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700 transition duration-300">
+            <!-- Modal header -->
+            <div class="flex justify-between items-center p-5 rounded-t border-b dark:border-gray-600">
+                <h3 class="text-xl font-medium text-gray-900 dark:text-white" id="modalTitle">
+                    {% if cliente_nombre %}
+                        Historial de Cuotas - {{ cliente_nombre }}
+                    {% else %}
+                        Historial de Cuotas
+                    {% endif %}
+                </h3>
+                <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white" onclick="cerrarModal('historialModal')">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0-8-8 8 8 0 0 0 8 8z" clip-rule="evenodd"></path></svg>
+                </button>
+            </div>
+
+            <!-- Modal body -->
+            <div class="px-6 pb-4 space-y-6 lg:px-8 sm:pb-6 xl:pb-8">
+                <!-- Contenido del historial -->
+                <ul>
+                    {% for historial in historiales_cuotas %}
+                        {% if historial.cliente.dni == cliente_dni %}
+                            <li>
+                                Inicio: {{ historial.fecha_inicio_cuota|date:"d M Y" }} - Fin: {{ historial.fecha_fin_cuota|date:"d M Y" }}
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
 
 <!-- Modal para Editar Cliente -->
 <div id="editarClienteModal" class="hidden fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 overflow-y-auto overflow-x-hidden z-50 w-full md:max-w-2xl p-4 transition duration-300">
@@ -105,8 +179,12 @@
                 </button>
             </div>
             <form id="editarForm" class="px-6 pb-4 space-y-6 lg:px-8 sm:pb-6 xl:pb-8" method="post">
-                {% csrf_token %}
+                                {% csrf_token %}
                 <!-- Campo para DNI editable -->
+                <div>
+                    <label for="id_cliente" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">ID Cliente</label>
+                    <input type="text" name="id_cliente" id="id_cliente" class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:text-white" readonly required>
+                </div>
                 <div>
                     <label for="dni" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">DNI</label>
                     <input type="text" name="dni" id="dni" class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:text-white" required>
@@ -122,11 +200,11 @@
                 </div>
                 <div>
                     <label for="fecha_inicio_cuota" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Fecha Inicio Cuota</label>
-                    <input type="date" name="fecha_inicio_cuota" id="fecha_inicio_cuota_editar" class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:text-white">
+                    <input type="date" name="fecha_inicio_cuota" id="fecha_inicio_cuota" class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:text-white">
                 </div>
                 <div>
                     <label for="fecha_fin_cuota" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Fecha Fin Cuota</label>
-                    <input type="date" name="fecha_fin_cuota" id="fecha_fin_cuota_editar" class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:text-white">
+                    <input type="date" name="fecha_fin_cuota" id="fecha_fin_cuota" class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:text-white">
                 </div>
                 <!-- Botón para enviar el formulario -->
                 <button type="submit" class="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
@@ -140,9 +218,9 @@
 {% endblock %}
 {% block javascript %}
 <script>
-    function abrirModal(id) {
+    function abrirModal(id_cliente) {
         const overlay = document.getElementById('overlay');
-        const modal = document.getElementById(id);
+        const modal = document.getElementById(id_cliente); // Cambiar 'id' a 'id_cliente'
         if (overlay && modal) {
             overlay.classList.remove('hidden');
             setTimeout(() => {
@@ -156,10 +234,10 @@
             }, 100);
         }
     }
-
-    function cerrarModal(id) {
+    
+    function cerrarModal(id_cliente) {
         const overlay = document.getElementById('overlay');
-        const modal = document.getElementById(id);
+        const modal = document.getElementById(id_cliente); // Cambiar 'id' a 'id_cliente'
         if (overlay && modal) {
             overlay.classList.remove('opacity-0');
             setTimeout(() => {
@@ -175,22 +253,27 @@
             }, 100);
         }
     }
-
-    function abrirModalEditar(dni) {
-        fetch(`/clientes/editar/${dni}/`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    function abrirModalEditar(id_cliente) {
+        fetch(`/clientes/editar/${id_cliente}/`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
             .then(response => response.json())
             .then(data => {
                 const form = document.getElementById('editarForm');
+                const idClienteInput = form.querySelector('input[name="id_cliente"]');
                 const dniInput = form.querySelector('input[name="dni"]');
                 const nombreCompletoInput = form.querySelector('input[name="nombre_completo"]');
                 const apodoInput = form.querySelector('input[name="apodo"]');
+                const fechaInicioInput = form.querySelector('input[name="fecha_inicio_cuota"]');
+                const fechaFinInput = form.querySelector('input[name="fecha_fin_cuota"]');
     
-                if (dniInput && nombreCompletoInput && apodoInput) {
+                if (idClienteInput && dniInput && nombreCompletoInput && apodoInput && fechaInicioInput && fechaFinInput) {
+                    idClienteInput.value = data.id_cliente || '';
                     dniInput.value = data.dni || '';
                     nombreCompletoInput.value = data.nombre_completo || '';
                     apodoInput.value = data.apodo || '';
+                    fechaInicioInput.value = data.fecha_inicio_cuota || '';
+                    fechaFinInput.value = data.fecha_fin_cuota || '';
     
-                    form.action = `/clientes/editar/${dni}/`;
+                    form.action = `/clientes/editar/${id_cliente}/`;
                     abrirModal('editarClienteModal');
                 } else {
                     console.error('Error: Elementos del formulario no encontrados.');
@@ -200,5 +283,62 @@
                 console.error('Error AJAX:', error);
             });
     }
+    
+    // Mantén el resto del código dentro del evento DOMContentLoaded
+
+    
+    function abrirModalHistorial(id_cliente) {
+        fetch(`/historial/${id_cliente}/`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(response => response.json())
+            .then(data => {
+                const modal = document.getElementById('historialModal');
+                if (modal) {
+                    // Limpiar el contenido anterior
+                    const historialContent = modal.querySelector('.px-6');
+                    historialContent.innerHTML = '';
+        
+                    // Obtener el nombre del cliente de la respuesta del servidor
+                    const clienteNombre = data.cliente_nombre; 
+        
+                    // Actualizar el título con el nombre del cliente
+                    const modalTitle = modal.querySelector('#modalTitle');
+                    modalTitle.textContent = `Historial de Cuotas - ${clienteNombre}`;
+        
+                    // Crear nueva entrada para cada período de cuotas en el historial
+                    const ul = document.createElement('ul');
+                    data.historial.forEach(entry => {
+                        const li = document.createElement('li');
+                        li.textContent = `Inicio: ${formatFecha(entry.fecha_inicio_cuota)} - Fin: ${formatFecha(entry.fecha_fin_cuota)}`;
+                        ul.appendChild(li);
+                    });
+        
+                    historialContent.appendChild(ul);
+        
+                    // Mostrar el modal
+                    abrirModal('historialModal');   
+                } else {
+                    console.error('Error: Elemento del modal no encontrado.');
+                }
+            })
+            .catch(error => {
+                console.error('Error AJAX:', error);
+            });
+    }
+    
+    function formatFecha(fecha) {
+        const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        const fechaObj = new Date(fecha + 'T00:00:00');
+        const dia = fechaObj.getDate();
+        const mes = meses[fechaObj.getMonth()];
+        const año = fechaObj.getFullYear();
+        return `${dia} ${mes}. ${año}`;
+    }
+    
+    
+    
+    
+    
+    
+
 </script>
 {% endblock %}
