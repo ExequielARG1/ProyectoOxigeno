@@ -8,6 +8,11 @@ from django.http import JsonResponse, HttpResponseServerError
 from django.contrib.auth.decorators import login_required
 from django.db.utils import IntegrityError
 from django.db import transaction
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.urls import reverse
+from django.db.models import Q
+from django.template.loader import render_to_string
+
 
 def index(request):
     return render(request, 'index.html')
@@ -35,10 +40,35 @@ def logout_view(request):
 
 @login_required(login_url='login_gym')
 def listar_clientes(request):
+    # Obtener todos los clientes
     clientes = Cliente.objects.all()
+
+    # Aplicar búsqueda en tiempo real
+    query = request.GET.get('q')
+    if query:
+        clientes = clientes.filter(
+            Q(nombre_completo__icontains=query) |
+            Q(apodo__icontains=query) |
+            Q(dni__icontains=query)
+        )
+
+    # Aplicar paginación (mostrar 5 clientes por página)
+    paginator = Paginator(clientes, 2)
+    page = request.GET.get('page')
+
+    try:
+        clientes_pagina = paginator.page(page)
+    except PageNotAnInteger:
+        # Si la página no es un entero, mostrar la primera página
+        clientes_pagina = paginator.page(1)
+    except EmptyPage:
+        # Si la página está fuera de rango (por ejemplo, 9999), mostrar la última página
+        clientes_pagina = paginator.page(paginator.num_pages)
+
     historiales_cuotas = CuotaHistorial.objects.all()
     form_cliente = ClienteForm()  # Utiliza el formulario de Django
-    return render(request, 'clientes.html', {'clientes': clientes, 'historiales_cuotas': historiales_cuotas, 'form_cliente': form_cliente, 'historial_form': CuotaHistorialForm()})
+    return render(request, 'clientes.html', {'clientes': clientes_pagina, 'historiales_cuotas': historiales_cuotas, 'form_cliente': form_cliente, 'historial_form': CuotaHistorialForm()})
+
 
 def ver_historial(request, id_cliente):
     try:
@@ -133,3 +163,23 @@ def eliminar_cliente(request, id_cliente):
     except Cliente.DoesNotExist:
         pass
     return HttpResponseServerError("Error interno al eliminar el cliente.")
+
+
+
+
+from django.http import JsonResponse
+
+def live_search(request):
+    try:
+        query = request.GET.get('q', '')
+        results = Cliente.objects.filter(
+            nombre_completo__icontains=query) | Cliente.objects.filter(
+            apodo__icontains=query) | Cliente.objects.filter(
+            dni__icontains=query)
+
+        data = [{'id_cliente': cliente.id_cliente, 'nombre_completo': cliente.nombre_completo, 'apodo': cliente.apodo, 'dni': cliente.dni} for cliente in results]
+
+        return JsonResponse(data, safe=False)
+    except Exception as e:
+        print(f"Error en live_search: {str(e)}")
+        return JsonResponse({'error': 'Error en el servidor'}, status=500)

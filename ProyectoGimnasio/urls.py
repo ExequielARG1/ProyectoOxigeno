@@ -27,5 +27,6 @@ urlpatterns = [
     path('clientes/crear/', views.crear_cliente, name='crear_cliente'),
     path('historial/<int:id_cliente>/', views.ver_historial, name='ver_historial'),  # Cambiado 'dni' a 'id_cliente'
     path('clientes/editar/<int:id_cliente>/', views.editar_cliente, name='editar_cliente'),  # Cambiado 'dni' a 'id_cliente'
-    path('clientes/eliminar/<int:id_cliente>/', views.eliminar_cliente, name='eliminar_cliente')  # Cambiado 'dni' a 'id_cliente'
+    path('clientes/eliminar/<int:id_cliente>/', views.eliminar_cliente, name='eliminar_cliente'),  # Cambiado 'dni' a 'id_cliente'
+    path('live_search/', views.live_search, name='live_search'),
 ]
