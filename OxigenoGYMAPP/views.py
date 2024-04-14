@@ -2,8 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
-from .models import Cliente, CuotaHistorial
-from .forms import ClienteForm, CuotaHistorialForm
+from .models import Cliente, CuotaHistorial, Producto, TipoProducto, CuotaRenovacion
+from .forms import ClienteForm, CuotaHistorialForm, ProductoForm, TipoProductoForm, CuotaRenovacionForm
 from django.http import JsonResponse, HttpResponseServerError
 from django.contrib.auth.decorators import login_required
 from django.db.utils import IntegrityError
@@ -12,6 +12,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.urls import reverse
 from django.db.models import Q
 from django.template.loader import render_to_string
+from django import forms
 
 
 def index(request):
@@ -68,8 +69,31 @@ def listar_clientes(request):
     historiales_cuotas = CuotaHistorial.objects.all()
     form_cliente = ClienteForm()  # Utiliza el formulario de Django
     return render(request, 'clientes.html', {'clientes': clientes_pagina, 'historiales_cuotas': historiales_cuotas, 'form_cliente': form_cliente, 'historial_form': CuotaHistorialForm()})
-
-
+def renovar_cuota(request, id_cliente):
+    cliente = get_object_or_404(Cliente, pk=id_cliente)
+    
+    if request.method == 'POST':
+        form = CuotaRenovacionForm(request.POST)
+        if form.is_valid():
+            cuota_renovacion = form.save(commit=False)
+            cuota_renovacion.cliente = cliente
+            cuota_renovacion.save()
+            return redirect('listar_clientes')
+    else:
+        # Verificar si las fechas están disponibles
+        print("Fecha de inicio de cuota:", cliente.fecha_inicio_cuota)
+        print("Fecha de fin de cuota:", cliente.fecha_fin_cuota)
+        
+        data = {
+            'nombre_cliente': cliente.nombre_completo,
+            'fecha_inicio_cuota': cliente.fecha_inicio_cuota.strftime('%Y-%m-%d') if cliente.fecha_inicio_cuota else None,
+            'fecha_fin_cuota': cliente.fecha_fin_cuota.strftime('%Y-%m-%d') if cliente.fecha_fin_cuota else None,
+        }
+        
+        # Verificar los datos antes de enviar la respuesta
+        print("Datos enviados:", data)
+        
+        return JsonResponse(data)
 def ver_historial(request, id_cliente):
     try:
         cliente = Cliente.objects.get(id_cliente=id_cliente)
@@ -183,3 +207,46 @@ def live_search(request):
     except Exception as e:
         print(f"Error en live_search: {str(e)}")
         return JsonResponse({'error': 'Error en el servidor'}, status=500)
+def lista_productos(request):
+    productos = Producto.objects.all()
+    tipos_producto = TipoProducto.objects.all()  # Obtener todos los tipos de producto
+    return render(request, 'productos.html', {
+        'productos': productos, 
+        'tipos_producto': tipos_producto,  # Añadir al contexto
+        'accion': 'listar'
+    })
+
+def crear_producto(request):
+    tipos_producto = TipoProducto.objects.all()  # Obtener todos los tipos de producto
+    if request.method == 'POST':
+        form = ProductoForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('lista_productos')
+    else:
+        form = ProductoForm()
+    return render(request, 'productos.html', {
+        'form': form, 
+        'tipos_producto': tipos_producto,  # Añadir al contexto
+        'accion': 'crear'  # Indicar la acción para diferenciar en la plantilla
+    })
+
+# Vista para editar un producto existente   
+def editar_producto(request, id_producto):
+    producto = get_object_or_404(Producto, id=id_producto)
+    if request.method == 'POST':
+        form = ProductoForm(request.POST, instance=producto)
+        if form.is_valid():
+            form.save()
+            return redirect('lista_productos')
+    else:
+        form = ProductoForm(instance=producto)
+    return render(request, 'productos.html', {'form': form, 'producto': producto, 'accion': 'editar'})
+
+# Vista para eliminar un producto
+def eliminar_producto(request, id_producto):
+    producto = get_object_or_404(Producto, id_producto=id_producto)
+    if request.method == 'POST':
+        producto.delete()
+        return redirect('lista_productos')
+    return render(request, 'productos.html', {'producto': producto, 'accion': 'eliminar'})

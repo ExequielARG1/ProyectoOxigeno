@@ -17,17 +17,17 @@
     <form method="get" action="{% url 'listar_clientes' %}">
         <label for="default-search" class="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white">Buscar</label>
         <div class="relative">
-            <div class="absolute inset-y-0 start-0 flex items-center pl-3 pointer-events-none">
-                <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" fill="none" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
+            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <svg class="w-5 h-5 text-gray-500 dark:text-gray-400" aria-hidden="true" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 5 8a7 7 0 0 1 14 0Z"/>
                 </svg>
             </div>
-            <input type="search" name="q" id="default-search" class="block w-full p-4 pl-10 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Buscar cliente por; nombre, apodo o dni" required>
-            <button type="submit" class="absolute right-2.5 bottom-2.5 px-4 py-2 text-sm font-medium text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Buscar</button>
+            <input type="search" name="q" id="default-search" class="block w-full p-4 pl-12 text-sm text-gray-900 placeholder-gray-500 bg-gray-100 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Buscar cliente..." required>
+            <button type="submit" class="absolute top-1/2 right-2.5 transform -translate-y-1/2 px-4 py-2 text-sm font-medium text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Buscar</button>
         </div>
     </form>
-    <!-- Contenedor para resultados de búsqueda -->
-    <div id="liveSearchResults" class="mt-2"></div>
+  <!-- Contenedor para resultados de búsqueda -->
+  <div id="liveSearchResults" class="absolute z-50 mt-2 left-1/2 -translate-x-1/2 w-full max-w-md bg-white bg-opacity-95 shadow-2xl rounded-lg divide-y divide-gray-200 overflow-auto hidden transition-all duration-300">
 </div>
 
   
@@ -48,38 +48,46 @@
         </button>
     </div>
 
-    <!-- Lista de clientes -->
-{% if clientes %}
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-    {% for cliente in clientes %}
-        <div class="bg-white p-6 rounded-lg shadow-lg transition duration-300 ease-in-out hover:shadow-xl">
-            <h2 class="text-xl font-bold text-blue-700 mb-2">{{ cliente.nombre_completo }}</h2>
-            <p class="text-sm text-gray-500 mb-1">{{ cliente.apodo }} - {{ cliente.dni }}</p>
-            <p class="text-sm font-semibold mb-3">Inicio: <span class="text-green-600">{{ cliente.fecha_inicio_cuota }}</span> - Fin: <span class="text-red-600">{{ cliente.fecha_fin_cuota }}</span></p>
-            <div class="flex justify-between items-center space-x-2">
-                <button onclick="abrirModalEditar('{{ cliente.id_cliente }}')" class="flex items-center px-3 py-1.5 bg-blue-500 hover:bg-blue-600 focus:ring-2 focus:ring-blue-300 transition-all duration-300 text-white rounded-md focus:outline-none">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-label="Editar cliente">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM18.41 7.34c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
-                    </svg>
-                    Editar
-                </button>
-                <button onclick="abrirModalHistorial('{{ cliente.id_cliente }}')" class="flex items-center px-3 py-1.5 bg-blue-500 hover:bg-blue-600 focus:ring-2 focus:ring-blue-300 transition-all duration-300 text-white rounded-md focus:outline-none">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-label="Ver historial">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m8.9-4.414c.376.023.75.05-1.124.08 1.131.094 1.976 1.057 1.976 2.192V16.5A2.25 2.25 0 0 1 18 18.75h-2.25m-7.5-10.5H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3 1.5 1.5 3-3.75" />
-                    </svg>
-                    Ver Historial
-                </button>
-                <form onsubmit="return confirm('¿Estás seguro de querer eliminar este cliente?');" action="{% url 'eliminar_cliente' cliente.id_cliente %}" method="post" class="inline">
-                    {% csrf_token %}
-                    <button type="submit" class="flex items-center px-3 py-1.5 bg-red-500 hover:bg-red-600 focus:ring-2 focus:ring-red-300 transition-all duration-300 text-white rounded-md focus:outline-none">
-                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20" aria-label="Eliminar cliente">
-                            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path>
+    {% if clientes %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for cliente in clientes %}
+            <div class="bg-white p-6 rounded-lg shadow-lg transition duration-300 ease-in-out hover:shadow-xl">
+                <h2 class="text-xl font-bold text-blue-700 mb-2">{{ cliente.nombre_completo }}</h2>
+                <p class="text-sm text-gray-500 mb-1">{{ cliente.apodo }} - {{ cliente.dni }}</p>
+                <p class="text-sm font-semibold mb-3">Inicio: <span class="text-green-600">{{ cliente.fecha_inicio_cuota }}</span> - Fin: <span class="text-red-600">{{ cliente.fecha_fin_cuota }}</span></p>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="abrirModalEditar('{{ cliente.id_cliente }}')" class="flex items-center px-3 py-1.5 bg-blue-500 hover:bg-blue-600 focus:ring-2 focus:ring-blue-300 transition-all duration-300 text-white rounded-md focus:outline-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-label="Editar cliente">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM18.41 7.34c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
                         </svg>
-                        Eliminar
+                        Editar
                     </button>
-                </form>
+                    <button onclick="abrirModalHistorial('{{ cliente.id_cliente }}')" class="flex items-center px-3 py-1.5 bg-blue-500 hover:bg-blue-600 focus:ring-2 focus:ring-blue-300 transition-all duration-300 text-white rounded-md focus:outline-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-label="Ver historial">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m8.9-4.414c.376.023.75.05-1.124.08 1.131.094 1.976 1.057 1.976 2.192V16.5A2.25 2.25 0 0 1 18 18.75h-2.25m-7.5-10.5H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3 1.5 1.5 3-3.75" />
+                        </svg>
+                        Ver Historial
+                    </button>
+                    <button onclick="abrirModalRenovar('{{ cliente.id_cliente }}')" class="flex items-center px-3 py-1.5 bg-green-500 hover:bg-green-600 focus:ring-2 focus:ring-green-300 transition-all duration-300 text-white rounded-md focus:outline-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-label="Renovar cuota">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"></path>
+                        </svg>
+                        Renovar Cuota
+                    </button>
+                    
+                    
+                    
+                    <form onsubmit="return confirm('¿Estás seguro de querer eliminar este cliente?');" action="{% url 'eliminar_cliente' cliente.id_cliente %}" method="post" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" class="flex items-center px-3 py-1.5 bg-red-500 hover:bg-red-600 focus:ring-2 focus:ring-red-300 transition-all duration-300 text-white rounded-md focus:outline-none">
+                            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20" aria-label="Eliminar cliente">
+                                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path>
+                            </svg>
+                            Eliminar
+                        </button>
+                    </form>
+                </div>
             </div>
-        </div>
         {% endfor %}
     </div>
     {% else %}
@@ -250,6 +258,41 @@
         </div>
     </div>
 </div>
+<div id="renovarCuotaModal" class="hidden fixed top-0 left-0 w-full h-full flex items-center justify-center z-50">
+    <div class="fixed top-0 left-0 w-full h-full bg-gray-900 opacity-50" onclick="cerrarModal('renovarCuotaModal')"></div>
+    <div class="relative bg-white rounded-lg overflow-hidden max-w-lg w-full p-8 z-50" style="top: 50%; left: 50%; transform: translate(-50%, -50%);">
+        <!-- Encabezado del modal -->
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-semibold text-gray-800">Renovar Cuota</h2>
+            <button type="button" class="text-gray-500 hover:text-gray-700 focus:outline-none" onclick="cerrarModal('renovarCuotaModal')" aria-label="Cerrar modal">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <!-- Formulario de renovación de cuota -->
+        <form id="CuotaRenovacionForm" method="post">
+            {% csrf_token %}
+            <!-- Campo para Nombre del Cliente -->
+            <div class="mb-4">
+                <label for="nombre_cliente" class="block text-sm font-medium text-gray-700">Nombre del Cliente</label>
+                <input type="text" id="nombre_cliente" name="nombre_cliente" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" readonly required>
+            </div>
+            <!-- Campo para Fecha de Inicio de Cuota -->
+            <div class="mb-4">
+                <label for="fecha_inicio_cuota" class="block text-sm font-medium text-gray-700">Fecha de Inicio de Cuota</label>
+                <input type="date" id="fecha_inicio_cuota" name="fecha_inicio_cuota" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" readonly required>
+            </div>
+            <!-- Campo para Fecha de Fin de Cuota -->
+            <div class="mb-4">
+                <label for="fecha_fin_cuota" class="block text-sm font-medium text-gray-700">Fecha de Fin de Cuota</label>
+                <input type="date" id="fecha_fin_cuota" name="fecha_fin_cuota" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" readonly required>
+            </div>
+            <!-- Botón para enviar el formulario -->
+            <button type="submit" class="w-full bg-indigo-500 text-white rounded-md py-2 px-4 mt-6 transition duration-300 ease-in-out hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Guardar Cambios</button>
+        </form>
+    </div>
+</div>
 <div class="flex justify-center mt-4">
     <nav class="flex items-center -space-x-px h-10 text-base">
         <a href="?page=1" class="flex items-center justify-center px-4 h-10 text-white bg-blue-500 border border-blue-500 rounded-l-md transition duration-300 ease-in-out transform hover:bg-blue-600 hover:scale-105">
@@ -273,6 +316,11 @@
         </a>
     </nav>
 </div>
+
+
+
+
+</body>
 {% endblock %}
 {% block javascript %}
 <script>
@@ -341,7 +389,29 @@
                 console.error('Error AJAX:', error);
             });
     }
+
+    function abrirModalRenovar(id_cliente) {
+        if (id_cliente) {
+            fetch(`/clientes/renovar/${id_cliente}/`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('nombre_cliente').value = data.nombre_cliente || '';
+                    document.getElementById('fecha_inicio_cuota').value = data.fecha_inicio_cuota || '';
+                    document.getElementById('fecha_fin_cuota').value = data.fecha_fin_cuota || '';
+                    // Mostrar el modal de renovación de cuota
+                    document.getElementById('renovarCuotaModal').style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error AJAX:', error);
+                });
+        } else {
+            console.error('Error: No se proporcionó un ID de cliente válido.');
+        }
+    }
     
+        
+
+
     // Mantén el resto del código dentro del evento DOMContentLoaded
 
     
@@ -445,6 +515,8 @@
         }
     });
 
-
+    function cerrarModal(idModal) {
+        document.getElementById(idModal).style.display = "none";
+    }
 </script>
 {% endblock %}

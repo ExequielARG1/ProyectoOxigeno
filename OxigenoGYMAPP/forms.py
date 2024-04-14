@@ -1,7 +1,24 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Cliente, CuotaHistorial
+from .models import Cliente, CuotaHistorial, TipoProducto, Producto, CuotaRenovacion
 
+
+class TipoProductoForm(forms.ModelForm):
+    class Meta:
+        model = TipoProducto
+        fields = ['descripcion_tipo_producto']
+
+class CuotaRenovacionForm(forms.ModelForm):
+    class Meta:
+        model = CuotaRenovacion
+        fields = ['cliente', 'fecha_inicio_cuota', 'fecha_fin_cuota']
+        
+class ProductoForm(forms.ModelForm):
+    class Meta:
+        model = Producto
+        fields = ['nombre', 'descripcion', 'precio', 'tipo_producto','stock_disponible', 'imagen1']
+    
+        
 class ClienteForm(forms.ModelForm):
     class Meta:
         model = Cliente

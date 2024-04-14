@@ -17,6 +17,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.urls import path
+from django.conf import settings
+from django.conf.urls.static import static
 from OxigenoGYMAPP import views
 
 urlpatterns = [
@@ -29,4 +31,14 @@ urlpatterns = [
     path('clientes/editar/<int:id_cliente>/', views.editar_cliente, name='editar_cliente'),  # Cambiado 'dni' a 'id_cliente'
     path('clientes/eliminar/<int:id_cliente>/', views.eliminar_cliente, name='eliminar_cliente'),  # Cambiado 'dni' a 'id_cliente'
     path('live_search/', views.live_search, name='live_search'),
+    path('productos/', views.lista_productos, name='lista_productos'),
+    path('producto/crear/', views.crear_producto, name='crear_producto'),
+    path('producto/editar/<int:id_producto>/', views.editar_producto, name='editar_producto'),
+    path('producto/eliminar/<int:id_producto>/', views.eliminar_producto, name='eliminar_producto'),
+    path('clientes/renovar/<int:id_cliente>/', views.renovar_cuota, name='renovar_couta'),
+
+    
+
 ]
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

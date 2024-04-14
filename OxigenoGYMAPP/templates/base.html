@@ -42,6 +42,7 @@
                 <a href="#" class="text-white hover:text-gray-300">Contacto</a>
                 {% if user.is_authenticated %}
                 <a href="{% url 'listar_clientes' %}" class="text-white hover:text-gray-300">Clientes</a>
+                <a href="{% url 'lista_productos' %}" class="text-white hover:text-gray-300">Productos</a>
                 {% endif %}
             </div>
             <div class="auth-links space-x-2">
